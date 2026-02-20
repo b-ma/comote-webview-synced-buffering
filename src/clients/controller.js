@@ -6,6 +6,7 @@ import { html, render } from 'lit';
 import '@ircam/sc-components/sc-text.js';
 import '@ircam/sc-components/sc-status.js';
 import '@ircam/sc-components/sc-number.js';
+import '@ircam/sc-components/sc-qrcode.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -24,7 +25,10 @@ async function main($container) {
 
   await client.start();
 
+  const global = await client.stateManager.attach('global');
   const comoteCollection = await client.stateManager.getCollection('comote');
+
+  global.onUpdate(() => renderApp(), true);
   comoteCollection.onChange(() => renderApp(), true);
 
   function renderApp() {
@@ -35,14 +39,23 @@ async function main($container) {
           <sw-audit .client="${client}"></sw-audit>
         </header>
         <section>
+          <div class="qrcode">
+            <sc-qrcode
+              value=${global.get('appAddress')}
+            ></sc-qrcode>
+            <sc-text
+              editable
+              @change=${e => global.set('appAddress', e.detail.value)}
+            >${global.get('appAddress')}</sc-text>
+          </div>
           ${comoteCollection.map(state => {
             return html`
-              <div>
-                <div>
+              <div style="margin: 4px 0; padding: 4px; background-color: #232323;">
+                <div style="padding-bottom: 2px">
                   <sc-text>uuid</sc-text>
-                  <sc-text>${state.get('uuid')}</sc-text>
+                  <sc-text style="width: 300px">${state.get('uuid')}</sc-text>
                 </div>
-                <div>
+                <div style="padding-bottom: 2px">
                   <sc-text>isSourceActive</sc-text>
                   <sc-status ?active=${state.get('isSourceActive')}></sc-status>
                 </div>

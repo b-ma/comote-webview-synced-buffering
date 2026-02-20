@@ -5,6 +5,7 @@ import { loadConfig, configureHttpRouter } from '@soundworks/helpers/server.js';
 
 import PluginSync from '@soundworks/plugin-sync/server.js';
 import PluginLogger from '@soundworks/plugin-logger/server.js';
+import { getNetworkInterfacesInfos } from '@ircam/comote-helpers/network-infos.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -23,10 +24,25 @@ console.log(`
 const server = new Server(config);
 configureHttpRouter(server);
 
+const networkInfos = await getNetworkInterfacesInfos();
+
 // Register plugins and create shared state classes
 server.pluginManager.register('sync', PluginSync);
 server.pluginManager.register('logger', PluginLogger, {
   dirname: 'logs',
+});
+
+console.log(networkInfos);
+
+server.stateManager.defineClass('global', {
+  networkInfos: {
+    type: 'any',
+    default: networkInfos,
+  },
+  appAddress: {
+    type: 'string',
+    default: `http://${networkInfos[0].ip4}:${config.env.port}`,
+  },
 });
 
 server.stateManager.defineClass('comote', {
@@ -50,11 +66,11 @@ server.stateManager.defineClass('comote', {
 
 await server.start();
 
-// and do your own stuff!
+const global = await server.stateManager.create('global');
 
 // collection of all 'comote' shared state, can be used to pipe data to Max for example
-const comote = await server.stateManager.getCollection('comote');
-comote.onUpdate((state, updates) => {
-  // do something
-});
+// const comote = await server.stateManager.getCollection('comote');
+// comote.onUpdate((state, updates) => {
+//   // do something
+// });
 

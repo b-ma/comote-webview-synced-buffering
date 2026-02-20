@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import '@ircam/sc-components/sc-text.js';
 import '@ircam/sc-components/sc-status.js';
 import '@ircam/sc-components/sc-number.js';
+import '@ircam/sc-components/sc-fullscreen.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -83,9 +84,14 @@ async function main($container) {
   function renderApp() {
     render(html`
       <div class="simple-layout">
+        <sc-icon
+          type="fullscreen"
+          style="position: absolute; top: 10px; right: 10px;"
+          @input=${() => window.toggleModal()}
+        ></sc-icon>
         <div>
           <sc-text>uuid</sc-text>
-          <sc-text>${state.get('uuid')}</sc-text>
+          <sc-text style="width: 300px">${state.get('uuid')}</sc-text>
         </div>
         <div>
           <sc-text>isSourceActive</sc-text>
