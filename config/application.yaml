@@ -1,0 +1,8 @@
+name: comote-webview-synced-buffering
+author: ""
+clients:
+  comote:
+    runtime: browser
+    default: true
+  controller:
+    runtime: browser
