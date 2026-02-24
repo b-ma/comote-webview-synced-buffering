@@ -33,7 +33,7 @@ async function main($container) {
   const sync = await client.pluginManager.get('sync');
   const logger = await client.pluginManager.get('logger');
 
-  // get unique id across reload
+  // Get and retrieve unique id across page reloads
   let uuid;
   if (localStorage.getItem('uuid')) {
     uuid = localStorage.getItem('uuid');
@@ -42,7 +42,8 @@ async function main($container) {
     localStorage.setItem('uuid', uuid);
   }
 
-  // the writer will automatically buffer the data
+  // The writer will automatically buffer the data and write it in the filesystem
+  // on the server-side (bufferSize value is completely arbitrary here)
   const writer = await logger.createWriter(uuid, { bufferSize: 100 });
   const state = await client.stateManager.create('comote', { uuid });
   state.onUpdate(() => renderApp());
@@ -50,9 +51,11 @@ async function main($container) {
   let activeTimeoutId = null;
   let debug = true;
 
+  // This event is created by comote, `e.detail` contains the sensors frame
   window.addEventListener('comote', (e) => {
     clearTimeout(activeTimeoutId);
 
+    // Time tag data with synchronized clock to realign everything for analysis
     const frame = e.detail;
     const syncTime = sync.getSyncTime();
     frame.syncTime = syncTime;
@@ -64,18 +67,19 @@ async function main($container) {
       }
     }
 
-    // store raw data with synchronized time tag to realign everything for analysis
+    // Store raw data with synchronized time tag
     writer.write(frame);
 
-    // example of processing some stuff for real-time usage
+    // Toy example of processing some stuff for real-time usage (this could perfectly
+    // live in another lower frame-rate routine)
     const someProcessedValue = frame.accelerometer.x * 2; // :)
 
     state.set({
-      realTimeData: someProcessedValue,
+      realTimeData: someProcessedValue, // this value won't be propagated back to the client
       isSourceActive: true, // note that if value doesn't change, it won't be propagated on the network
     });
 
-    // if no frame received in 100ms, mark source as inactive
+    // If no frame received in 100ms for some reason, mark the source as inactive
     activeTimeoutId = setTimeout(() => {
       state.set({ isSourceActive: false });
     }, 100);
