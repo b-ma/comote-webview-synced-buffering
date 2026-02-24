@@ -55,7 +55,7 @@ async function main($container) {
   window.addEventListener('comote', (e) => {
     clearTimeout(activeTimeoutId);
 
-    // Time tag data with synchronized clock to realign everything for analysis
+    // Time tag data with synchronized clock to realign everything later (for analysis)
     const frame = e.detail;
     const syncTime = sync.getSyncTime();
     frame.syncTime = syncTime;
@@ -67,16 +67,18 @@ async function main($container) {
       }
     }
 
-    // Store raw data with synchronized time tag
+    // Store raw data with synchronized time tag.
+    // - Frame is just stored as is (JSON stringified) but could be formatted differently
+    // - Each `write` correspond to a new line in the log file
     writer.write(frame);
 
-    // Toy example of processing some stuff for real-time usage (this could perfectly
-    // live in another lower frame-rate routine)
+    // Toy example of processing some stuff for real-time usage
+    // (this could perfectly live in a lower frame-rate routine)
     const someProcessedValue = frame.accelerometer.x * 2; // :)
 
     state.set({
       realTimeData: someProcessedValue, // this value won't be propagated back to the client
-      isSourceActive: true, // note that if value doesn't change, it won't be propagated on the network
+      isSourceActive: true, // if the value doesn't change, it won't be propagated on the network
     });
 
     // If no frame received in 100ms for some reason, mark the source as inactive
