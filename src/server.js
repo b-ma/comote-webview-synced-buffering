@@ -32,8 +32,6 @@ server.pluginManager.register('logger', PluginLogger, {
   dirname: 'logs',
 });
 
-console.log(networkInfos);
-
 server.stateManager.defineClass('global', {
   networkInfos: {
     type: 'any',
